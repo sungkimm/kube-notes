@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-pod
+spec:
+  containers:
+    - name: unhealthy-pod
+      image: smlinux/unhealthy  # responds 500 at the 6th request. this image doesnt run on arm chip..
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+      livenessProbe:
+        httpGet: # checked by http request. if it doesnt get 200 code then restart the container
+          path: /
+          port: 8080 
+        
+        initialDelaySeconds: 5 # after N second container runs
+        periodSeconds: 1 # how often request
+        timeoutSeconds: 1 # response timeout
+        successThreshold: 1
+        failureThreshold: 1
+        
+        # tcpSocket:
+        #   port: 22
+        
+        # exec:
+        #   command: # command to run inside container, if 0 return then healthy
+        #   - ls 
+        #   - command
