@@ -34,3 +34,39 @@ db-service.dev.svc.cluster.local
 `cluster.local` : domain
 
 
+
+
+## Labels and Selector
+----
+#### Label Definition at each point
+
+LABEL-B and LABEL-C must match each other
+``` yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx
+  labels:
+    app: my-nginx # LABEL-A: <--this label is to manage the deployment itself. this may be used to filter the deployment based on this label. 
+spec:              
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-nginx    #LABEL-B:  <--  this is where we tell replication controller to manage the pods. This field defines how the Deployment finds which Pods to manage. Must match with LABEL-C
+  template:
+    metadata:
+      labels:
+        app: my-nginx   #LABEL-C: <--this is the label of the pod, this must be same as LABEL-B
+    spec:                
+      containers:
+      - name: my-nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "128Mi" #128 MB
+            cpu: "200m" #200 millicpu (.2 cpu or 20% of the cpu)
+
+```
