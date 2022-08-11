@@ -3,7 +3,7 @@
 1. liveness Probe
 2. init container
 3. infra container(pause)
-
+4. Pod command and args
 
 ## 1. Livness Probe
 ---
@@ -86,3 +86,76 @@ It a container manges IP, host, etc..
 # check if infra container is up and ready on worker node
 docker ps -a 
 ```
+
+## 4. Pod command and args
+#### How ENTRYPOINT and CMD works in docker
+##### 1. CMD
+`CMD` gets overwritten by docker run CMD parameters
+
+``` Dockerfile
+# Dockerfile
+FROM ubuntu
+CMD ["sleep", "5"]
+```
+
+```bash
+# this will do sleep 10 because command gets overwritten
+$ docker run ubuntu sleep 10
+```
+##### 2. ENTRYPOINT 
+`ENTRYPOINT` gets appended by docker run CMD parameters
+
+``` Dockerfile
+# Dockerfile
+FROM ubuntu
+ENTRYPOINT ["sleep"]
+```
+```bash
+# this will do sleep 10 because command gets appended
+$ docker run ubuntu 10
+
+# if cmd parameter is missing then error: sleep 
+$ docker run ubuntu 
+```
+##### 3. Combination
+``` Dockerfile
+# Dockerfile
+FROM ubuntu
+ENTRYPOINT ["sleep"]
+CMD ["5"]
+```
+
+```bash
+# if not specifiy cmd parameter them, sleep 5
+$ docker run ubuntu
+
+# if specifiy cmd parameter them, sleep 10
+$ docker run ubuntu 10
+
+# if you want to replace entrypoint then use --entrypoint option
+# assume sleep2.0 is a command
+# then it will run sleep2.0 10
+$ docker run --entrypoint sleep2.0 ubuntu 10
+```
+
+
+#### How ENTRYPOINT and CMD works in Pod
+
+`args` corresponds to CMD in `docker run CMD`  
+`command` corresponds to entrypoint option in `docker run --entrypoint`
+
+``` yaml
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: ["sleep2.0"]  # same as entrypoint option in docker run
+      args: ["10"]  # same as CMD in docker run
+```
+The above setup will run:  
+```bash
+# this will run sleep2.0 10
+$ doker run --entrypoint sleep2.0 ubuntu 10
+```
+
+      

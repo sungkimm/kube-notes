@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: ["sleep2.0"]  # same as entrypoint option in docker run
+      args: ["10"]  # same as CMD in docker run
+
+      # sleep2.0 is just an imaginary command
+      # doker run --name ubuntu-sleeper --entrypoint sleep2.0 ubuntu 10
+      # this will run sleep2.0 10
+
+
+
+# assume your dockerfile is like the following:
+# FROM ubuntu
+# ENTRYPOINT ["sleep"]
+# CMD ["5"]

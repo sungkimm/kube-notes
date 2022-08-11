@@ -68,3 +68,59 @@ spec:
             cpu: "200m" #200 millicpu (.2 cpu or 20% of the cpu)
 
 ```
+
+
+
+## Scale
+```bash
+# After creatuib of deployment, use scale command. This doesn't change the corresponding yaml file. 
+kubectl scale deployment nginx --replicas=4
+```
+
+
+
+## Service
+
+Imperative command example:
+#### Create a service name redis-sevice to expose pod redis
+``` bash
+# assume pod exists already. this maps service to pod redis
+kubectl expose pod redis --port=6379 --name redis-service --dry-run=client -o yaml
+```
+#### Create a pod and service at the same time and expose service to pod
+Example:  
+``` bash
+# pod and service creatation at the same time
+# create a pod and service called httpd and expose service to the pod at once.
+# and the target port for the service is 80
+$ kubectl run httpd --image=httpd:alpine --port 80 --expose --dry-run=client -o yaml
+```
+
+Corresponding YAML file:
+``` yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpd
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: httpd  # --expose option ensures the selector matches the labels from pod(**)
+---
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: httpd   # this part **
+  name: httpd
+spec:
+  containers:
+  - image: httpd:alpine
+    name: httpd
+    ports:
+    - containerPort: 80
+```
