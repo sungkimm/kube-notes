@@ -1,4 +1,4 @@
-# Kubernetes Note
+# Kubernetes Notes
 
 Refer to a README file in each folder for further notes and example.
 
