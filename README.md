@@ -37,10 +37,8 @@ db-service.dev.svc.cluster.local
 
 
 ## Labels and Selector
-----
-#### Label Definition at each point
-
-LABEL-B and LABEL-C must match each other
+#### Label Definition at each level
+`LABEL-B` and `LABEL-C` must be the same
 ``` yaml
 
 apiVersion: apps/v1
