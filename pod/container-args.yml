@@ -6,8 +6,8 @@ spec:
   containers:
     - name: ubuntu
       image: ubuntu
-      command: ["sleep2.0"]  # same as entrypoint option in docker run
-      args: ["10"]  # same as CMD in docker run
+      command: ["sleep2.0"]  # same as entrypoint option in docker run. This will override dockerfile entrypoint
+      args: ["10"]  # same as CMD in docker run. This will override dockerfile CMD
 
       # sleep2.0 is just an imaginary command
       # doker run --name ubuntu-sleeper --entrypoint sleep2.0 ubuntu 10

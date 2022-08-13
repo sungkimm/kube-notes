@@ -4,6 +4,10 @@
 2. init container
 3. infra container(pause)
 4. Pod command and args
+5. Static pod
+6. Pod resource control
+7. Pod env
+8. Pod pattern
 
 ## 1. Livness Probe
 ---
@@ -132,7 +136,7 @@ $ docker run ubuntu
 # if specifiy cmd parameter them, sleep 10
 $ docker run ubuntu 10
 
-# if you want to replace entrypoint then use --entrypoint option
+# if you want to replace entrypoint then use --entrypoint option(this will overwrite entrypoint in dockerfile)
 # assume sleep2.0 is a command
 # then it will run sleep2.0 10
 $ docker run --entrypoint sleep2.0 ubuntu 10
@@ -141,16 +145,16 @@ $ docker run --entrypoint sleep2.0 ubuntu 10
 
 #### How ENTRYPOINT and CMD works in Pod
 
-`args` corresponds to CMD in `docker run CMD`  
-`command` corresponds to entrypoint option in `docker run --entrypoint`
+`args` corresponds to CMD in `docker run CMD`. This will overwrite CMD in Dockerfile.  
+`command` corresponds to entrypoint option in `docker run --entrypoint`. This will override Dockerfile entrypoint
 
 ``` yaml
 spec:
   containers:
     - name: ubuntu
       image: ubuntu
-      command: ["sleep2.0"]  # same as entrypoint option in docker run
-      args: ["10"]  # same as CMD in docker run
+      command: ["sleep2.0"]  # same as entrypoint option in docker run. This will override dockerfile entrypoint
+      args: ["10"]  # same as CMD in docker run. This will override dockerfile CMD
 ```
 The above setup will run:  
 ```bash
@@ -158,4 +162,105 @@ The above setup will run:
 $ doker run --entrypoint sleep2.0 ubuntu 10
 ```
 
-      
+#### Another Example
+``` bash
+# Dockerfile
+ENTRYPOINT ["python", "app.py"]
+CMD ["--color", "red"]
+```
+# yaml
+command: ["--color", "green"]
+
+
+# result
+$ --color green
+```
+The `command` from yaml will overwrite ENTRYPOINT in Dockerfile and there is no argument section provided here. THerefore it only runs `--color green`
+
+
+## 5. Static pod
+Static pod runs by kubelet daemon, not by API server from master node.  
+Place pod yaml file under staticPodPath at worker node. 
+
+Static pod path:  
+``` bash
+# save yaml file under
+cat /var/lib/kubelet/config.yaml | grep staticPodPath
+# /etc/kubernetes/manifests
+```
+#### How to delete static pod
+``` bash
+# delete yml file
+rm /etc/kubernetes/manifests/pod-ex.yml
+```
+If you changed staticPodPath, then make sure to restart kubelet daemon.  
+``` bash 
+systemctl restart kubelet
+```
+
+
+
+## 6. Pod resource control
+
+`request`: minimum amoount of resources required to create a container
+`limits`: minimum amoount of resources required to create a container. if process dies due to out of resouce, then pod gets rescheduled. 
+
+#### Example:
+``` yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod-resource
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 8080
+      resources:
+        requests:
+          cpu: 200m  # 200 milli core
+          memory: 250Mi
+        limits:
+          cpu: 1 # num core
+          memory: 500Mi # MiB or Gi
+
+```
+`memory`: kubernetes uses MiB(Mi) or Gi
+`cpu`: kubernetes uses either # of core or milli-core
+
+#### units
+``` text
+# memory
+1MB == 1000kb
+1MiB == 1024kib
+
+# core
+1 core == 1000m
+```
+
+If only specifies limits without requests, then requests is set with the same spec as limits, as a default 
+
+
+## 7. Pod env
+
+#### Example
+``` yaml
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 8080
+      env:
+        - name: NEW_VAR
+          value: newval
+```
+
+
+## 8. Pod pattern
+
+multi-container pod
+1. Sidecar
+2. Adapter
+3. Ambassador
