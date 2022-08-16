@@ -74,10 +74,10 @@ spec:
       ports:
         - containerPort: 8080
       env:
-        - name:
+        - name: APP_COLOR
           valueFrom:
             configMapKeyRef:
               name: app-config
-              key: key
+              key: APP_COLOR
 ```
 Configmap must be run before pod run.  

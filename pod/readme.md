@@ -8,6 +8,7 @@
 6. Pod resource control
 7. Pod env
 8. Pod pattern
+9. Security context
 
 ## 1. Livness Probe
 ---
@@ -264,3 +265,43 @@ multi-container pod
 1. Sidecar
 2. Adapter
 3. Ambassador
+
+
+## 9. Security context
+
+Security settings on the container level will override the settings on the pod.  
+#### Example YAML
+To apply security settings on a `pod level`
+``` yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  securityContext:  # add it under spec
+    runAsUser: 1000
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 8080
+```
+
+
+To apply security settings on a `container level`
+``` yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 8080
+      securityContext:  # add it under container
+        runAsUser: 1000
+        capabilities:
+          add: ["MAC_ADMIN"] # capability are only supported at the container level
+```
