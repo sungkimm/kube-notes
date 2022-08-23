@@ -1,15 +1,36 @@
 # Pod
 
-1. liveness Probe
-2. init container
-3. infra container(pause)
-4. Pod command and args
-5. Static pod
-6. Pod resource control
-7. Pod env
-8. Pod pattern
-9. Security context
+1. Multi-Container Pod
+2. Liveness Probe
+3. Init container
+4. Infra container(pause)
+5. Pod command and args
+6. Static pod
+7. Pod resource control
+8. Pod env
+9. Pod pattern
+10. Security context
 
+
+## 1. Multi-Container Pod
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multipod
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+    - name: centos
+      image: centos:7
+```
+
+### How to access to container 
+```bash
+kubectl exec multipod -it -c contos -- /bin/bash
+```
 ## 1. Livness Probe
 ---
 #### Type:

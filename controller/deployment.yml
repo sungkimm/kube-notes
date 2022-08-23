@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-dep
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webui
+  template:                 # pod template
+    metadata:
+      name: nginx-pod
+      labels:               # pod labels
+        app: webui      
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.14

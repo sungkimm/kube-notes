@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-rep
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webui
+    matchExpressions:
+      - {key: version, operator: In, values: ["2.1", "2.2"]}
+    # - {key: version, operator: Exists }
+  template:                 # pod template
+    metadata:
+      name: nginx-pod
+      labels:               # pod labels
+        app: webui      
+        version: "2.1"   # can have multiple lables
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx

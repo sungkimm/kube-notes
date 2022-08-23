@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-node-affinity
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: size
+              operator: In
+              values:
+                - Small
+      # preferredDuringSchedulingIgnoredDuringExecution:
+      #   - weight: 1
+      #     preference:
+      #       matchExpressions:
+      #       - key: size
+      #         operator: In
+      #         values:
+      #           - Large
