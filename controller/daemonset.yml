@@ -1,11 +1,8 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  annotations:
-    kubernetes.io/change-cause: version 1.15
-  name: nginx-dep
+  name: nginx-daemonset
 spec:
-  replicas: 3
   selector:
     matchLabels:
       app: webui

@@ -1,11 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  annotations:
-    kubernetes.io/change-cause: version 1.15
-  name: nginx-dep
+  name: nginx-stateful
 spec:
-  replicas: 3
+  replicas: 8
+  serviceName: sf-service
+  podManagementPolicy: Parallel # OrderedReady # optional
   selector:
     matchLabels:
       app: webui

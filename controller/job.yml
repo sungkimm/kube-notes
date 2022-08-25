@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-job
+spec:
+  template:                 # pod template
+    # complete: 5
+    spec:
+      containers:
+        - name: centos-container
+          image: centos:7
+          command: ["bash"]
+          args:
+            - "-c"
+            # - "echo 'Hello'; sleep 5; echo 'bye'"
+            - "exit 2"
+      restartPolicy: Never
