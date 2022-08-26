@@ -395,28 +395,15 @@ It guarantees the pods to be placed on the same node with version changes.
 `Job Controller` are primarily used for batch processing.  
 
 In a nutshell, 
-* Job completed -> Pod in completed status, but alive
-* Job fails -> Pod gets recreated the specified time. Pods can be either terminated or alive depending on options on `restartPolicy`
-
-### `restartPolicy` manages container, not pod
-
-In kubernetes, `.spec.template.spec.restartPolicy = "Always"` is set always by default. This attribute `restartPolicy` applies to **all containers** in the pod. After containers in a Pod exit, the kubelet restarts them. 
+* Job(task) completed -> Pod in completed status, but alive
+* Job(task) fails -> Pod gets recreated the specified time. Pods can be either terminated or alive depending on options on `restartPolicy`
 
 
-### When a container in pod **completed**
-the container is re-run due to `.spec.template.spec.restartPolicy = "Always"`.  
+Check [pod's lifecyle](../pod/README.md#pod-lifecyle) and how `restartPolicy` works in pod. `restartPolicy` manages container, not pod. 
 
-### When a container in pod is **failed**  
-A container in a Pod may fail for a number of reasons. ex) process exited with error code, memory exceeding, etc.
-
-If this happens, and the `.spec.template.spec.restartPolicy = "OnFailure`, then the Pod stays on the node, but the container is re-run.
-Therefore, your program needs to handle the case when it is restarted locally, or else specify `.spec.template.spec.restartPolicy = "Never"`
-
-### When a pod is failed
+### When a pod is failed 
 
 An entire Pod can also fail. ex) when the pod is kicked off the node (node is upgraded, rebooted, deleted, etc.), or if a container of the Pod fails and the `.spec.template.spec.restartPolicy = "Never"`. When a Pod fails, then the `Job controller` starts a new Pod. This means that your application needs to handle the case when it is restarted in a new pod.
-
-
 
 ### `backoffLimit` policy
 You can fail a Job after some amount of retries. Set `.spec.backoffLimit` to specify the number of retries(pod recreation) before considering a Job as failed. Default is `.spec.backoffLimit=6`.  
@@ -468,10 +455,8 @@ spec:
             restartPolicy: OnFailure
         backoffLimit: 2
 ```
-
-Result
+Result 
 ```bash
-
 $ kubectl get pod <pod-name>
 
 # example 

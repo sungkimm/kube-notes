@@ -1,18 +1,20 @@
 # Pod
 
 1. Multi-Container Pod
-2. Liveness Probe
-3. Init container
-4. Infra container(pause)
-5. Pod command and args
-6. Static pod
-7. Pod resource control
-8. Pod env
-9. Pod pattern
-10. Security context
+2. Pod lifecyle
+3. Liveness Probe
+4. Init container
+5. Infra container(pause)
+6. Pod command and args
+7. Static pod
+8. Pod resource control
+9. Pod env
+10. Pod pattern
+11. Security context
 
 
 ## 1. Multi-Container Pod
+---
 
 ```yaml
 apiVersion: v1
@@ -31,7 +33,43 @@ spec:
 ```bash
 kubectl exec multipod -it -c contos -- /bin/bash
 ```
-## 1. Livness Probe
+
+## 2. Pod lifecyle
+### Pod lifecyle
+---
+By default, kubernetes controller re-run container if a task(container inside pod) fails.  
+
+```yaml
+spec:
+  containers:
+    ...
+  restartPolicy: Always
+```
+### `restartPolicy` manages container, not pod
+
+In kubernetes, `.spec.template.spec.restartPolicy = "Always"` is set as always by default. This attribute `restartPolicy` applies to **all containers** in the pod. After containers in a Pod exit, the kubelet restarts them by default.  
+
+
+### When a container in pod **completed**
+the container is re-run due to `.spec.template.spec.restartPolicy = "Always"`.  
+
+### When a container in pod is **failed**  
+A container in a Pod may fail for a number of reasons. ex) process exited with error code, memory exceeding, etc.
+
+If this happens, and the `.spec.template.spec.restartPolicy = "OnFailure`, then the Pod stays on the node, but the container is re-run.
+Therefore, your program needs to handle the case when it is restarted locally, or else specify `.spec.template.spec.restartPolicy = "Never"`
+
+
+If a container fails and `.spec.template.spec.restartPolicy = "Never"`, your container doesn't re-run, but pod exists. 
+
+#### Example output: `.spec.template.spec.restartPolicy = "Never"`
+```bash
+$ kubectl get pod -o wide
+NAME              READY   STATUS      RESTARTS   AGE     IP          NODE      NOMINATED NODE   READINESS GATES
+test              0/1     Error       0          3m37s   10.44.0.1   worker1   <none>           <none>
+```
+
+## 3. Livness Probe
 ---
 #### Type:
 ```yaml
@@ -79,7 +117,7 @@ spec:
 
 
 
-## 2. init container
+## 4. init container
 ----
 One container depends on the other. If init container doesn't run properly then the main container doesn't run. 
 The main container runs after init container is ready.
@@ -103,7 +141,7 @@ spec:
 ```
 
 
-## 3. infra container(pause)
+## 5. Infra container(pause)
 It's a default container inside pod created by kubernetes.
 It a container manges IP, host, etc..
 
@@ -113,7 +151,7 @@ It a container manges IP, host, etc..
 docker ps -a 
 ```
 
-## 4. Pod command and args
+## 6. Pod command and args
 #### How ENTRYPOINT and CMD works in docker
 ##### 1. CMD
 `CMD` gets overwritten by docker run CMD parameters
@@ -189,7 +227,7 @@ $ doker run --entrypoint sleep2.0 ubuntu 10
 # Dockerfile
 ENTRYPOINT ["python", "app.py"]
 CMD ["--color", "red"]
-```
+
 # yaml
 command: ["--color", "green"]
 
@@ -200,7 +238,7 @@ $ --color green
 The `command` from yaml will overwrite ENTRYPOINT in Dockerfile and there is no argument section provided here. THerefore it only runs `--color green`
 
 
-## 5. Static pod
+## 7. Static pod
 Static pod runs by kubelet daemon, not by API server from master node.  
 Place pod yaml file under staticPodPath at worker node. 
 
@@ -222,7 +260,7 @@ systemctl restart kubelet
 
 
 
-## 6. Pod resource control
+## 8. Pod resource control
 
 `request`: minimum amoount of resources required to create a container
 `limits`: minimum amoount of resources required to create a container. if process dies due to out of resouce, then pod gets rescheduled. 
@@ -264,7 +302,7 @@ spec:
 If only specifies limits without requests, then requests is set with the same spec as limits, as a default 
 
 
-## 7. Pod env
+## 9. Pod env
 
 #### Example
 ``` yaml
@@ -280,7 +318,7 @@ spec:
 ```
 
 
-## 8. Pod pattern
+## 10. Pod pattern
 
 multi-container pod
 1. Sidecar
@@ -288,7 +326,7 @@ multi-container pod
 3. Ambassador
 
 
-## 9. Security context
+## 11. Security context
 
 Security settings on the container level will override the settings on the pod.  
 #### Example YAML
