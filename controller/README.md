@@ -392,38 +392,36 @@ Rolling-update terminates the pod then create a new pod like `DaemonSet`.
 It guarantees the pods to be placed on the same node with version changes. 
 
 ## 6. Job Controller
-`Job Controller` are primarily used for batch processing.
+`Job Controller` are primarily used for batch processing.  
 
-When the task(in container) is completed, `Job controller` will shut down the pod(complete status). Kubernetes will **not** automatically delete these Pods nor create more pods.  
-
-When the task is failed, the `job controller` will recreate the pod.  
+In a nutshell, 
+* Job completed -> Pod in completed status, but alive
+* Job fails -> Pod gets recreated the specified time. Pods can be either terminated or alive depending on options on `restartPolicy`
 
 ### `restartPolicy` manages container, not pod
 
 In kubernetes, `.spec.template.spec.restartPolicy = "Always"` is set always by default. This attribute `restartPolicy` applies to **all containers** in the pod. After containers in a Pod exit, the kubelet restarts them. 
 
 
-#### When a container in pod **completed**
+### When a container in pod **completed**
 the container is re-run due to `.spec.template.spec.restartPolicy = "Always"`.  
 
-#### When a container in pod is **failed**  
+### When a container in pod is **failed**  
 A container in a Pod may fail for a number of reasons. ex) process exited with error code, memory exceeding, etc.
 
 If this happens, and the `.spec.template.spec.restartPolicy = "OnFailure`, then the Pod stays on the node, but the container is re-run.
 Therefore, your program needs to handle the case when it is restarted locally, or else specify `.spec.template.spec.restartPolicy = "Never"`
 
-#### When a pod is failed
+### When a pod is failed
 
 An entire Pod can also fail. ex) when the pod is kicked off the node (node is upgraded, rebooted, deleted, etc.), or if a container of the Pod fails and the `.spec.template.spec.restartPolicy = "Never"`. When a Pod fails, then the `Job controller` starts a new Pod. This means that your application needs to handle the case when it is restarted in a new pod.
 
 
 
-#### `backoffLimit` policy
+### `backoffLimit` policy
 You can fail a Job after some amount of retries. Set `.spec.backoffLimit` to specify the number of retries(pod recreation) before considering a Job as failed. Default is `.spec.backoffLimit=6`.  
 
-
-
-#### Job Controller YAML example
+### Job Controller YAML example
 
 ```yaml
 apiVersion: batch/v1
@@ -448,7 +446,7 @@ spec:
 ```
 
 
-#### When a task completed
+### When a task completed
 
 Even if a task completed without a problem, the pod is still alive.  `restartPolicy: Always` is invalid value on Job.  
 
@@ -458,7 +456,7 @@ NAME              READY   STATUS      RESTARTS   AGE     IP          NODE      N
 nginx-job-skmg2   0/1     Completed   0          5m33s   10.44.0.1   worker1   <none>           <none>
 ```
 
-#### When a task fails and `restartPolicy: OnFailure`
+### When a task fails and `restartPolicy: OnFailure`
 
 `restartPolicy: OnFailure` restarts **container** when fails. Once the job backoff limit has been reached, your Pod running the Job will be **terminated(pod dies)**. This makes debugging the job's executable mroe difficult. 
 
@@ -481,7 +479,7 @@ NAME              READY   STATUS       RESTARTS   AGE   IP          NODE      NO
 ```
 
 
-#### When a task fails and `restartPolicy: Never`
+### When a task fails and `restartPolicy: Never`
 
 `restartPolicy: Never` will not restart **container** even if it fails, thus the job(task) stays as failed, and 'Job Controller` will restart(create a new pod) the pod until the job backoff limit has been reached. **Pods are still alive.**  
 ```yaml
