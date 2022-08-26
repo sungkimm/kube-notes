@@ -409,11 +409,101 @@ the container is re-run due to `.spec.template.spec.restartPolicy = "Always"`.
 #### When a container in pod is **failed**  
 A container in a Pod may fail for a number of reasons. ex) process exited with error code, memory exceeding, etc.
 
-If this happens, and the `.spec.template.spec.restartPolicy = "OnFailure or Always"`, then the Pod stays on the node, but the container is re-run.
+If this happens, and the `.spec.template.spec.restartPolicy = "OnFailure`, then the Pod stays on the node, but the container is re-run.
 Therefore, your program needs to handle the case when it is restarted locally, or else specify `.spec.template.spec.restartPolicy = "Never"`
 
 #### When a pod is failed
 
 An entire Pod can also fail. ex) when the pod is kicked off the node (node is upgraded, rebooted, deleted, etc.), or if a container of the Pod fails and the `.spec.template.spec.restartPolicy = "Never"`. When a Pod fails, then the `Job controller` starts a new Pod. This means that your application needs to handle the case when it is restarted in a new pod.
+
+
+
+#### `backoffLimit` policy
+You can fail a Job after some amount of retries. Set `.spec.backoffLimit` to specify the number of retries(pod recreation) before considering a Job as failed. Default is `.spec.backoffLimit=6`.  
+
+
+
+#### Job Controller YAML example
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-job
+spec:
+  template:                 # pod template
+    completions: 5    # run N time
+    parallelism: 2
+    activeDeadlineSeconds: 5
+    spec:
+      containers:
+        - name: centos-container
+          image: centos:7
+          command: ["bash"]
+          args:
+            - "-c"
+            - "echo 'Hello'; sleep 5; echo 'bye'"
+      restartPolicy: Never
+  backoffLimit: 2
+```
+
+
+#### When a task completed
+
+Even if a task completed without a problem, the pod is still alive.  `restartPolicy: Always` is invalid value on Job.  
+
+Output example
+```bash
+NAME              READY   STATUS      RESTARTS   AGE     IP          NODE      NOMINATED NODE   READINESS GATES
+nginx-job-skmg2   0/1     Completed   0          5m33s   10.44.0.1   worker1   <none>           <none>
+```
+
+#### When a task fails and `restartPolicy: OnFailure`
+
+`restartPolicy: OnFailure` restarts **container** when fails. Once the job backoff limit has been reached, your Pod running the Job will be **terminated(pod dies)**. This makes debugging the job's executable mroe difficult. 
+
+```yaml
+spec:
+    template:
+        spec:
+            ...
+            restartPolicy: OnFailure
+        backoffLimit: 2
+```
+
+Result
+```bash
+
+$ kubectl get pod <pod-name>
+
+# example 
+NAME              READY   STATUS       RESTARTS   AGE   IP          NODE      NOMINATED NODE   READINESS GATES
+```
+
+
+#### When a task fails and `restartPolicy: Never`
+
+`restartPolicy: Never` will not restart **container** even if it fails, thus the job(task) stays as failed, and 'Job Controller` will restart(create a new pod) the pod until the job backoff limit has been reached. **Pods are still alive.**  
+```yaml
+spec:
+    template:
+        spec:
+            ...
+            restartPolicy: Never
+        backoffLimit: 2
+```
+
+Result
+```bash
+
+$ kubectl get pod <pod-name>
+
+# example 
+NAME              READY   STATUS       RESTARTS   AGE   IP          NODE      NOMINATED NODE   READINESS GATES
+nginx-job-8xfmt   0/1     StartError   0          4s    10.44.0.1   worker1   <none>           <none>
+nginx-job-z6kdp   0/1     StartError   0          17s   10.44.0.1   worker1   <none>           <none>
+nginx-job-z6pj4   0/1     StartError   0          20s   10.44.0.1   worker1   <none>           <none>
+```
+
 ## 7. CronJob
 
