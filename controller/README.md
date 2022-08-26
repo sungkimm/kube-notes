@@ -399,7 +399,7 @@ In a nutshell,
 * Job(task) fails -> Pod gets recreated the specified time. Pods can be either terminated or alive depending on options on `restartPolicy`
 
 
-Check [pod's lifecyle](../pod/README.md#pod-lifecyle) and how `restartPolicy` works in pod. `restartPolicy` manages container, not pod. 
+Check [pod's lifecyle](pod/README.md#pod-lifecyle) and how `restartPolicy` works in pod. `restartPolicy` manages container, not pod. 
 
 ### When a pod is failed 
 
